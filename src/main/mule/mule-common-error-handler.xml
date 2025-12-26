@@ -5,16 +5,17 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<error-handler name="global-error-handler" doc:id="2d80a275-ceb2-438b-8dd9-9b883c55f390" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8048c9ba-a401-48e1-a239-d1bfa1a12e37" type="ANY">
-			<ee:transform doc:name="response" doc:id="1ef820e3-6170-42de-92df-e86935256de5" >
-				<ee:message >
-					<ee:set-payload ><![CDATA[%dw 2.0
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="cbd47150-1d8a-4a60-b5bc-52323c6378b0" type="ANY">
+			<set-variable value="500" doc:name="httpStatus" doc:id="fcc67f49-151c-4a3c-8bbf-0c7e3094a53c" variableName="httpStatus"/>
+			<ee:transform doc:name="response" doc:id="1ef820e3-6170-42de-92df-e86935256de5">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
 import * from modules::errorUtils
 output application/json
 ---
 buildErrorResponse(error)]]></ee:set-payload>
 				</ee:message>
 			</ee:transform>
-		</on-error-propagate>
+		</on-error-continue>
 	</error-handler>
 </mule>

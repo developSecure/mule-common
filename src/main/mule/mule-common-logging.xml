@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="initialLoggingSubFlow" doc:id="f0da1d1d-51e0-4862-a77b-5e3b59248da0" >
+		<set-variable value="#[%dw 2.0
+output application/json
+---
+correlationId]" doc:name="correlationId" doc:id="2ab81772-09ab-48d8-ada5-8a1cb726e4c0" variableName="correlationId"/>
+		<set-variable value='#["IN_PROGRESS"]' doc:name="processingStage" doc:id="f31782ce-f79f-4b1a-95b3-4ef6f7ee9e78" variableName="processingStage"/>
+		<ee:transform doc:name="requestInfo" doc:id="4ac1b537-9489-4c7b-b539-5494e7e95e7c">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="requestInfo"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	resource: attributes.maskedRequestPath,
+	method: attributes.method,
+	processingApi: (attributes.listenerPath splitBy("/"))[1],
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="auditLoggingSubFlow" doc:id="594de732-feb0-4c74-b594-f083db93d16e" name="commonLoggingSubFlow"/>
+	</sub-flow>
+	<sub-flow name="commonLoggingSubFlow" doc:id="4145bcf6-2a91-43e6-bc85-fdc22e8b84b9" >
+		<ee:transform doc:name="auditLogging" doc:id="564ec6e9-8123-4fcb-8cd1-8b5dd4e71f4d">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="auditLogger" ><![CDATA[%dw 2.0
+output application/json
+fun prepareMessage(message) = 
+	if (vars.logMessage == null)
+		{}
+	else if (typeOf(vars.logMessage) as String == "Object") 
+		message
+	else
+		{"processStatus": message}
+---
+{
+	correlationId: vars.correlationId,
+	processingApi: vars.requestInfo.processingApi,
+	requestedURI: vars.requestInfo.resource,
+	method: vars.requestInfo.method,
+	processingStage: vars.processingStage,
+} ++ prepareMessage(vars.logMessage)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3bacdb1b-de29-4b93-bdcb-91329500d734" message="#[vars.auditLogger]" />
+	</sub-flow>
+	<sub-flow name="finalisingLoggingSubFlow" doc:id="79627934-826d-4e0a-b39b-932853fea685" >
+		<set-variable value='#["COMPLETED"]' doc:name="processingStage" doc:id="70893104-4a72-43dc-8b6b-83c854ddce38" variableName="processingStage" />
+		<flow-ref doc:name="auditLoggingSubFlow" doc:id="3a30cb21-a58c-4b9d-940e-bed379f35c5a" name="commonLoggingSubFlow" />
+	</sub-flow>
+</mule>

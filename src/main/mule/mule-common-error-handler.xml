@@ -16,6 +16,17 @@ output application/json
 buildErrorResponse(error)]]></ee:set-payload>
 				</ee:message>
 			</ee:transform>
+			<set-variable value="true" doc:name="isError" doc:id="3d5ae835-8e17-4ae5-8d5d-bb62043985f0" variableName="isError"/>
+			<set-variable value='#[%dw 2.0
+output application/json
+---
+{
+	flow: (error.failingComponent default "" splitBy("/"))[0],
+	"mule-config-file": (error.failingComponent splitBy(/ /))[2],
+	failingComponent: ((error.dslSource splitBy(/&lt;| /)) filter $ != "")[0],
+	failingAPI: ((error.failingComponent splitBy(/ /))[2] splitBy(/:/))[0]
+}]' doc:name="logMessage" doc:id="1d3fdbd8-2496-4c3d-b899-700f345ca5ba" variableName="logMessage"/>
+			<flow-ref doc:name="commonLoggingSubFlow" doc:id="75e19567-8b08-4c14-bea4-25577ea9d1a4" name="commonLoggingSubFlow"/>
 		</on-error-continue>
 	</error-handler>
 </mule>

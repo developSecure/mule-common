@@ -43,6 +43,7 @@ fun prepareMessage(message) =
 ---
 {
 	correlationId: vars.correlationId,
+	dateTimeStamp: now(),
 	processingApi: vars.requestInfo.processingApi,
 	requestedURI: vars.requestInfo.resource,
 	method: vars.requestInfo.method,
@@ -50,7 +51,14 @@ fun prepareMessage(message) =
 } ++ prepareMessage(vars.logMessage)]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="3bacdb1b-de29-4b93-bdcb-91329500d734" message="#[vars.auditLogger]" />
+		<choice doc:name="Choice" doc:id="fd04210a-f3ee-4390-ba8d-72cf7b1e50f4" >
+			<when expression='#[vars.isError != null and vars.isError == "true"]'>
+				<logger level="ERROR" doc:name="ERROR" doc:id="53795bf2-6744-48dc-8d1e-5e8705642bd8" message="#[vars.auditLogger]" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="INFO" doc:id="3bacdb1b-de29-4b93-bdcb-91329500d734" message="#[vars.auditLogger]" />
+			</otherwise>
+		</choice>
 	</sub-flow>
 	<sub-flow name="finalisingLoggingSubFlow" doc:id="79627934-826d-4e0a-b39b-932853fea685" >
 		<set-variable value='#["COMPLETED"]' doc:name="processingStage" doc:id="70893104-4a72-43dc-8b6b-83c854ddce38" variableName="processingStage" />

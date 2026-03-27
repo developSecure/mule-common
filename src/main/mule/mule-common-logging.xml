@@ -16,11 +16,12 @@ correlationId]" doc:name="correlationId" doc:id="2ab81772-09ab-48d8-ada5-8a1cb72
 			<ee:variables>
 				<ee:set-variable variableName="requestInfo"><![CDATA[%dw 2.0
 output application/json
+//(attributes.listenerPath splitBy("/"))[1]
 ---
 {
 	resource: attributes.maskedRequestPath,
 	method: attributes.method,
-	processingApi: (attributes.listenerPath splitBy("/"))[1],
+	processingApi: app.name,
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
@@ -42,11 +43,11 @@ fun prepareMessage(message) =
 		{"processStatus": message}
 ---
 {
-	correlationId: vars.correlationId,
+	correlationId: vars.correlationId default correlationId,
 	dateTimeStamp: now(),
 	processingApi: vars.requestInfo.processingApi,
-	requestedURI: vars.requestInfo.resource,
-	method: vars.requestInfo.method,
+	(requestedURI: vars.requestInfo.resource) if (vars.requestInfo.resource != null),
+	(method: vars.requestInfo.method) if (vars.requestInfo.method != null),
 	processingStage: vars.processingStage,
 } ++ prepareMessage(vars.logMessage)]]></ee:set-variable>
 			</ee:variables>

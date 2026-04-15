@@ -45,10 +45,10 @@ fun prepareMessage(message) =
 {
 	correlationId: vars.correlationId default correlationId,
 	dateTimeStamp: now(),
-	processingApi: vars.requestInfo.processingApi,
+	processingApi: vars.requestInfo.processingApi default app.name,
 	(requestedURI: vars.requestInfo.resource) if (vars.requestInfo.resource != null),
 	(method: vars.requestInfo.method) if (vars.requestInfo.method != null),
-	processingStage: vars.processingStage,
+	processingStage: vars.processingStage default "IN_PROGRESS",
 } ++ prepareMessage(vars.logMessage)]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
